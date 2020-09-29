@@ -43,7 +43,11 @@ module Whois
       end
 
 
-      property_not_supported :created_on
+      property_supported :created_on do
+        if content_for_scanner =~ /Creation date.?:\s+(.+)\n/
+          Time.utc(*$1.split("/").reverse)
+        end
+      end
 
       # TODO: custom date format with foreign month names
       # property_supported :updated_on do
@@ -52,19 +56,17 @@ module Whois
       #   end
       # end
 
-      property_not_supported :expires_on
-
-
-      property_supported :nameservers do
-        if content_for_scanner =~ /Servidores de nombre \(Domain servers\):\n((.+\n)+)\n/
-          $1.split("\n").map do |line|
-            line.strip!
-            line =~ /(.+) \((.+)\)/
-            Parser::Nameserver.new(:name => $1, :ipv4 => $2)
-          end
+      property_supported :expires_on do
+        if content_for_scanner =~ /Expiration date.?:\s+(.+)\n/
+          Time.utc(*$1.split("/").reverse)
         end
       end
 
+      property_supported :nameservers do
+        content_for_scanner.scan(/Name server: (([a-zA-Z0-9]+|[a-zA-Z0-9]*\*[a-zA-Z0-9]*)(\.[a-zA-Z0-9]+){2,3})\n/).map do |name|
+          Parser::Nameserver.new(:name => name[0])
+        end
+      end
     end
 
   end

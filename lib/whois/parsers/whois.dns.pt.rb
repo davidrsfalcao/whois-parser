@@ -51,7 +51,7 @@ module Whois
 
 
       property_supported :created_on do
-        if content_for_scanner =~ / Creation Date .+?:\s+(.+)\n/
+        if content_for_scanner =~ / Creation Date.?:\s+(.+)\n/
           Time.utc(*$1.split("/").reverse)
         end
       end
@@ -59,15 +59,14 @@ module Whois
       property_not_supported :updated_on
 
       property_supported :expires_on do
-        if content_for_scanner =~ / Expiration Date .+?:\s+(.+)\n/
+        if content_for_scanner =~ / Expiration Date.?:\s+(.+)\n/
           Time.utc(*$1.split("/").reverse)
         end
       end
 
-
       property_supported :nameservers do
-        content_for_scanner.scan(/Nameserver:\s+(?:.*)\s+NS\s+(.+?)\.\n/).flatten.map do |name|
-          Parser::Nameserver.new(:name => name)
+        content_for_scanner.scan(/Name Server: (([a-zA-Z0-9]+|[a-zA-Z0-9]*\*[a-zA-Z0-9]*)(\.[a-zA-Z0-9]+){2,3})/).map do |name|
+          Parser::Nameserver.new(:name => name[0])
         end
       end
 
