@@ -7,7 +7,7 @@
 #++
 
 
-require_relative 'base'
+require_relative 'base_shared2'
 
 
 module Whois
@@ -18,7 +18,7 @@ module Whois
     # @see Whois::Parsers::Example
     #   The Example parser for the list of all available methods.
     #
-    class WhoisNicCo < Base
+    class WhoisNicCo < BaseShared2
 
       property_supported :status do
         if available?
