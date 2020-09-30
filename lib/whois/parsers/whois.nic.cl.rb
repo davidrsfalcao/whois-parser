@@ -35,7 +35,7 @@ module Whois
       end
 
       property_supported :available? do
-         !!(content_for_scanner =~ /^(.+?): no existe$/)
+         !!(content_for_scanner =~ /^(.+?): no entries found./)
       end
 
       property_supported :registered? do
@@ -45,7 +45,7 @@ module Whois
 
       property_supported :created_on do
         if content_for_scanner =~ /Creation date.?:\s+(.+)\n/
-          Time.utc(*$1.split("/").reverse)
+          Time.parse($1).utc
         end
       end
 
@@ -58,12 +58,12 @@ module Whois
 
       property_supported :expires_on do
         if content_for_scanner =~ /Expiration date.?:\s+(.+)\n/
-          Time.utc(*$1.split("/").reverse)
+          Time.utc($1).utc
         end
       end
 
       property_supported :nameservers do
-        content_for_scanner.scan(/Name server: (([a-zA-Z0-9]+|[a-zA-Z0-9]*\*[a-zA-Z0-9]*)(\.[a-zA-Z0-9]+){2,3})\n/).map do |name|
+        content_for_scanner.scan(/Name server: (([a-zA-Z0-9\-]+|[a-zA-Z0-9\-]*\*[a-zA-Z0-9\-]*)(\.[a-zA-Z0-9\-]+){2,3})/).map do |name|
           Parser::Nameserver.new(:name => name[0])
         end
       end

@@ -55,7 +55,7 @@ module Whois
       end
 
       property_supported :nameservers do
-        content_for_scanner.scan(/Name Server: (([a-zA-Z0-9]+|[a-zA-Z0-9]*\*[a-zA-Z0-9]*)(\.[a-zA-Z0-9]+){2,3})/).map do |name|
+        content_for_scanner.scan(/Name Server: (([a-zA-Z0-9\-]+|[a-zA-Z0-9\-]*\*[a-zA-Z0-9\-]*)(\.[a-zA-Z0-9\-]+){2,3})/).map do |name|
           Parser::Nameserver.new(:name => name[0])
         end
       end
