@@ -44,8 +44,8 @@ module Whois
 
 
       property_supported :created_on do
-        if content_for_scanner =~ /Creation date.?:\s+(.+)\n/
-          Time.parse($1).utc + 10800 # CLST to UTC
+        if content_for_scanner =~ /Creation date.?:\s+([0-9 -:]+) /
+          Time.utc($1 + " UTC") + 10800 # CLST to UTC
         end
       end
 
@@ -57,8 +57,8 @@ module Whois
       # end
 
       property_supported :expires_on do
-        if content_for_scanner =~ /Expiration date.?:\s+(.+)\n/
-          Time.parse($1).utc + 10800 # CLST to UTC
+        if content_for_scanner =~ /Expiration date.?:\s+([0-9 -:]+) /
+          Time.utc($1 + " UTC") + 10800 # CLST to UTC
         end
       end
 
