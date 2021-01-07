@@ -21,7 +21,7 @@ module Whois
     class WhoisNicStore < BaseIcannCompliant
 
       self.scanner = Scanners::BaseIcannCompliant, {
-          pattern_available: /^Domain not found\./
+          pattern_available: /^DOMAIN NOT FOUND\./
       }
 
 
