@@ -7,78 +7,66 @@
 #++
 
 
-require_relative 'base_afilias'
+require_relative 'base'
 
 
 module Whois
   class Parsers
 
+    #
+    # = whois.nic.me parser
+    #
     # Parser for the whois.nic.me server.
-    class WhoisNicMe < BaseAfilias
+    #
+    # NOTE: This parser is just a stub and provides only a few basic methods
+    # to check for domain availability and get domain status.
+    # Please consider to contribute implementing missing methods.
+    # See WhoisNicIt parser for an explanation of all available methods
+    # and examples.
+    #
+    class WhoisNicMe < Base
 
       property_supported :status do
-        Array.wrap(node("Domain Status"))
+        if available?
+          :available
+        else
+          :registered
+        end
+      end
+
+      property_supported :available? do
+         !!(content_for_scanner =~ /^NOT FOUND/)
+      end
+
+      property_supported :registered? do
+        !available?
       end
 
 
       property_supported :created_on do
-        node("Domain Create Date") do |value|
-          parse_time(value)
+        if content_for_scanner =~ /Creation Date.?: (.*)/
+          Time.parse($1).utc
         end
       end
 
-      property_supported :updated_on do
-        node("Domain Last Updated Date") do |value|
-          parse_time(value)
-        end
-      end
+      # TODO: custom date format with foreign month names
+      # property_supported :updated_on do
+      #   if content_for_scanner =~ /changed:\s+(.*)\n/
+      #     parse_time($1.split(" ", 2).last)
+      #   end
+      # end
 
       property_supported :expires_on do
-        node("Domain Expiration Date") do |value|
-          parse_time(value)
+        if content_for_scanner =~ /Registry Expiry Date.?: (.*)/
+          Time.parse($1).utc
         end
       end
-
 
       property_supported :nameservers do
-        Array.wrap(node("Nameservers")).reject(&:empty?).map do |name|
-          Parser::Nameserver.new(name: name.downcase)
+        content_for_scanner.scan(/Name Server: (([a-zA-Z0-9\-]+|[a-zA-Z0-9\-]*\*[a-zA-Z0-9\-]*)(\.[a-zA-Z0-9\-]+){2,3})/).map do |name|
+          Parser::Nameserver.new(:name => name[0])
         end
       end
-
-
-      private
-
-      def build_contact(element, type)
-        node("#{element} ID") do
-          address = ["", "2", "3"].
-              map { |i| node("#{element} Address#{i}") }.
-              delete_if(&:empty?).
-              join("\n")
-
-          Parser::Contact.new(
-            type:         type,
-            id:           node("#{element} ID"),
-            name:         node("#{element} Name"),
-            organization: node("#{element} Organization"),
-            address:      address,
-            city:         node("#{element} City"),
-            zip:          node("#{element} Postal Code"),
-            state:        node("#{element} State/Province"),
-            country_code: node("#{element} Country/Economy"),
-            phone:        node("#{element} Phone"),
-            fax:          node("#{element} FAX"),
-            email:        node("#{element} E-mail")
-          )
-        end
-      end
-
-      def decompose_registrar(value)
-        if value =~ /^(.+?) ([^\s]+)$/
-          [$2, $1]
-        end
-      end
-
     end
 
   end
