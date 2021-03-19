@@ -7,35 +7,56 @@
 #++
 
 
-require_relative 'base_afilias2'
+require_relative 'base'
 
 
 module Whois
   class Parsers
 
     # Parser for the whois.afilias.net server.
-    class WhoisAfiliasNet < BaseAfilias2
-
-      self.scanner = Scanners::BaseAfilias, {
-          pattern_disclaimer: /^Access to/,
-          pattern_reserved: /^(Name is reserved by afilias\n)|(Reserved by Registry\n)/,
-      }
-
+    class WhoisAfiliasNet < Base
 
       property_supported :status do
-        if reserved?
-          :reserved
+        if available?
+          :available
         else
-          super()
+          :registered
         end
       end
 
-      # NEWPROPERTY
-      def reserved?
-        !!node("status:reserved")
+      property_supported :available? do
+         !!(content_for_scanner =~ /^NOT FOUND/)
       end
 
-    end
+      property_supported :registered? do
+        !available?
+      end
 
+
+      property_supported :created_on do
+        if content_for_scanner =~ /Creation Date.?: (.*)/
+          Time.parse($1).utc
+        end
+      end
+
+      # TODO: custom date format with foreign month names
+      # property_supported :updated_on do
+      #   if content_for_scanner =~ /changed:\s+(.*)\n/
+      #     parse_time($1.split(" ", 2).last)
+      #   end
+      # end
+
+      property_supported :expires_on do
+        if content_for_scanner =~ /Registrar Registration Expiration Date.?: (.*)/
+          Time.parse($1).utc
+        end
+      end
+
+      property_supported :nameservers do
+        content_for_scanner.scan(/Name Server: (([a-zA-Z0-9\-]+|[a-zA-Z0-9\-]*\*[a-zA-Z0-9\-]*)(\.[a-zA-Z0-9\-]+){2,3})/).map do |name|
+          Parser::Nameserver.new(:name => name[0])
+        end
+      end
+    end
   end
 end
