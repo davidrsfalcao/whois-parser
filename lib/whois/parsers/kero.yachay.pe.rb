@@ -27,12 +27,12 @@ module Whois
       property_supported :status do
         if content_for_scanner =~ /Status:\s+(.+?)\n/
           case $1.downcase
-          when "active", "ok", "clientTransferProhibited"
+          when "active", "ok", "clientTransferProhibited".downcase, "clientDeleteProhibited".downcase, "clientRenewProhibited".downcase, "clientUpdateProhibited".downcase
             :registered
           # NEWSTATUS suspended (https://github.com/weppos/whois/issues/5)
           when "suspended"
             :registered
-          when "not registered"
+          when "not registered", "no object found"
             :available
           when "inactive"
             :inactive
